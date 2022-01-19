@@ -90,8 +90,8 @@ float PID_MAX_INTEGRAL  =   200;
 
 // MAX AND MIN MOTOR OUTPUT
 
-float MAX_MOTOR_OUTPUT   =  1950;
-float MIN_MOTOR_OUTPUT   =  1050;
+float MAX_MOTOR_OUTPUT   =  2000;
+float MIN_MOTOR_OUTPUT   =  1000;
 
 // Timer Variables for PID Derivative Term
 unsigned long timePrev, timeCurr;
@@ -177,27 +177,16 @@ void setup() {
   DDRB |= B00001111;
 
   //Giving Intial 1000 Microsecond Pulse
-  for(int i =0; i<10; i++){
-    PORTB |= B00001111;
-    delayMicroseconds(1000);
-    PORTB &= B11110000;
-  }
-   
+  PORTB |= B00001111;
+  delayMicroseconds(1000);
+  PORTB &= B11110000;
+  
   //Enabling External Interrupt for pin no. 4,5,6 and 7 -> PD4, PD5, PD6, PD6  
   PCICR  |= (1<<PCIE2);
   PCMSK2 |= (1<<PCINT23);
   PCMSK2 |= (1<<PCINT22);
   PCMSK2 |= (1<<PCINT21);
   PCMSK2 |= (1<<PCINT20);
-
-//  All Went Well so Blink Red LED 3 times and start the Main loop
-
-  for( int i =0; i<3; i++){
-    digitalWrite(13, HIGH);
-    delay(500);
-    digitalWrite(13, LOW);
-    delay(500);
-  }
 
 }
 
@@ -248,29 +237,29 @@ void loop() {
   timer_FL = reciever_channel_3 + PID_ROLL_OUTPUT - PID_PITCH_OUTPUT ;
 
   if(timer_BR > MAX_MOTOR_OUTPUT) timer_BR = MAX_MOTOR_OUTPUT;
-  if(timer_BR < MIN_MOTOR_OUTPUT) timer_BR = MIN_MOTOR_OUTPUT;
+  if(timer_BR < 1020) timer_BR = MIN_MOTOR_OUTPUT;
 
   if(timer_BL > MAX_MOTOR_OUTPUT) timer_BL = MAX_MOTOR_OUTPUT;
-  if(timer_BL < MIN_MOTOR_OUTPUT) timer_BL = MIN_MOTOR_OUTPUT;
+  if(timer_BL < 1020) timer_BL = MIN_MOTOR_OUTPUT;
 
   if(timer_FR > MAX_MOTOR_OUTPUT) timer_FR = MAX_MOTOR_OUTPUT;
-  if(timer_FR < MIN_MOTOR_OUTPUT) timer_FR = MIN_MOTOR_OUTPUT;
+  if(timer_FR < 1020) timer_FR = MIN_MOTOR_OUTPUT;
 
   if(timer_FL > MAX_MOTOR_OUTPUT) timer_FL = MAX_MOTOR_OUTPUT;
-  if(timer_FL < MIN_MOTOR_OUTPUT) timer_FL = MIN_MOTOR_OUTPUT;
+  if(timer_FL < 1020) timer_FL = MIN_MOTOR_OUTPUT;
 
   timer_BR += zero_timer;
   timer_BL += zero_timer;
   timer_FR += zero_timer;
   timer_FL += zero_timer;
 
-//  Serial.print(timer_BR-zero_timer);
-//  Serial.print("\t");
-//  Serial.print(timer_BL-zero_timer);
-//  Serial.print("\t");
-//  Serial.print(timer_FR-zero_timer);
-//  Serial.print("\t");
-//  Serial.println(timer_FL-zero_timer);
+  Serial.print(timer_BR-zero_timer);
+  Serial.print("\t");
+  Serial.print(timer_BL-zero_timer);
+  Serial.print("\t");
+  Serial.print(timer_FR-zero_timer);
+  Serial.print("\t");
+  Serial.println(timer_FL-zero_timer);
 
   while(PORTB & B00001111){
 
@@ -281,13 +270,13 @@ void loop() {
     if(timer_FR <= ESC_LOOP_TIMER)PORTB &= B11111011;
     if(timer_FL <= ESC_LOOP_TIMER)PORTB &= B11110111; 
   }
-  Serial.print(reciever_channel_1);
-  Serial.print("\t");
-  Serial.print(reciever_channel_2);
-  Serial.print("\t");
-  Serial.print(reciever_channel_3);
-  Serial.print("\t");
-  Serial.println(reciever_channel_4);
+//  Serial.print(reciever_channel_1);
+//  Serial.print("\t");
+//  Serial.print(reciever_channel_2);
+//  Serial.print("\t");
+//  Serial.print(reciever_channel_3);
+//  Serial.print("\t");
+//  Serial.println(reciever_channel_4);
 
 }
 
@@ -310,9 +299,6 @@ void calculatePID(){
 
   PID_ROLL_OUTPUT = PID_ROLL_P_ERROR + PID_ROLL_I_ERROR + PID_ROLL_D_ERROR;                         // Total Roll Error    
 
-  if(PID_ROLL_OUTPUT > PID_MAX_OUTPUT) PID_ROLL_OUTPUT = PID_MAX_OUTPUT;                            // LIMITING THE VALUE
-  if(PID_ROLL_OUTPUT < PID_MIN_OUTPUT) PID_ROLL_OUTPUT = PID_MIN_OUTPUT;                            // LIMITING THE VALUE
-
   PID_ROLL_ERROR_PREV = PID_ROLL_ERROR_CURR;                                                        // Assign Current Error to Previous Error 
 
 
@@ -327,9 +313,6 @@ void calculatePID(){
 
   PID_PITCH_OUTPUT = PID_PITCH_P_ERROR + PID_PITCH_I_ERROR + PID_PITCH_D_ERROR;                         // Total Pitch Error   
 
-  if(PID_PITCH_OUTPUT > PID_MAX_OUTPUT) PID_PITCH_OUTPUT = PID_MAX_OUTPUT;                              // LIMITING THE VALUE
-  if(PID_PITCH_OUTPUT < PID_MIN_OUTPUT) PID_PITCH_OUTPUT = PID_MIN_OUTPUT;                              // LIMITING THE VALUE
-
   PID_PITCH_ERROR_PREV = PID_PITCH_ERROR_CURR;                                                          // Assign Current Error to Previous Error 
   
 
@@ -343,11 +326,10 @@ void calculatePID(){
   PID_YAW_D_ERROR = ((PID_YAW_ERROR_CURR - PID_YAW_ERROR_PREV)/elapsedTime) * PID_YAW_D;         // Derivative Error  
 
   PID_YAW_OUTPUT = PID_YAW_P_ERROR + PID_YAW_I_ERROR + PID_YAW_D_ERROR;                          // Total Roll Error
-  
-  if(PID_YAW_OUTPUT > PID_MAX_OUTPUT) PID_YAW_OUTPUT = PID_MAX_OUTPUT;                       // LIMITING THE VALUE
-  if(PID_YAW_OUTPUT < PID_MIN_OUTPUT) PID_YAW_OUTPUT = PID_MIN_OUTPUT;                       // LIMITING THE VALUE
 
   PID_YAW_ERROR_PREV = PID_YAW_ERROR_CURR;                                                       // Assign Current Error to Previous Error 
+
+//  Serial.println(PID_ROLL_OUTPUT);
 
 }
 
