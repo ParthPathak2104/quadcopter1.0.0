@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:uno",
+    "port": "/dev/ttyUSB0",
+    "programmer": "arduino:arduinoisporg",
+    "sketch": "rc_input_test.ino"
+}
