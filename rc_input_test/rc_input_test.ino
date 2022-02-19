@@ -31,9 +31,9 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 // PID weights
 
-float PID_ROLL_P =        4;
-float PID_ROLL_I =        0.00;
-float PID_ROLL_D =        0;
+float PID_ROLL_P =        4.8;
+float PID_ROLL_I =        0.;
+float PID_ROLL_D =        5.;
 
 float PID_PITCH_P =       PID_ROLL_P;
 float PID_PITCH_I =       PID_ROLL_I;
@@ -219,9 +219,9 @@ void loop() {
 
   }
 
-  // If channel_3 that is throttel > 1010 then only start the process
+  // If channel_3 (that is throttel) > 1010 then only start the process
     
-//  if( throttle > 1010){
+  if( throttle > 1010){
 
     // 2. CALCULATE PID OUTPUT
     calculatePID();
@@ -241,13 +241,6 @@ void loop() {
     timer_FL = reciever_channel_3 + PID_ROLL_OUTPUT - PID_PITCH_OUTPUT ;  // CW
 
     battery_compensation = ((1240. - battery_voltage)/(float)3500);
-  
-//    if (battery_voltage < 1240 && battery_voltage > 800){                   //Is the battery connected?
-//      timer_BR += timer_BR * battery_compensation;              //Compensate the esc-1 pulse for voltage drop.
-//      timer_BL += timer_BL * battery_compensation;              //Compensate the esc-2 pulse for voltage drop.
-//      timer_FR += timer_FR * battery_compensation;              //Compensate the esc-3 pulse for voltage drop.
-//      timer_FL += timer_FL * battery_compensation;              //Compensate the esc-4 pulse for voltage drop.
-//    } 
 
     //  Limit the Output
     if(timer_BR > MAX_MOTOR_OUTPUT) timer_BR = MAX_MOTOR_OUTPUT;
@@ -262,13 +255,22 @@ void loop() {
     if(timer_FL > MAX_MOTOR_OUTPUT) timer_FL = MAX_MOTOR_OUTPUT;
     if(timer_FL < 1020) timer_FL = MIN_MOTOR_OUTPUT;
 
-    Serial.print(timer_BR);
-    Serial.print("\t");
-    Serial.print(timer_BL);
-    Serial.print("\t");
-    Serial.print(timer_FR);
-    Serial.print("\t");
-    Serial.println(timer_FL);
+  }
+  
+  else{
+    timer_BR = 1000;
+    timer_BL = 1000;
+    timer_FR = 1000;
+    timer_FL = 1000;
+  }
+  
+//    Serial.print(timer_BR);
+//    Serial.print("\t");
+//    Serial.print(timer_BL);
+//    Serial.print("\t");
+//    Serial.print(timer_FR);
+//    Serial.print("\t");
+//    Serial.println(timer_FL);
 
     // 3. GIVE THE OUTPUT TO MOTORS
 
@@ -295,7 +297,6 @@ void loop() {
       if(timer_FL <= ESC_LOOP_TIMER)PORTB &= B11110111; 
     }
     
-//  }
 
 }
 
