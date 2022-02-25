@@ -31,9 +31,9 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 // PID weights
 
-float PID_ROLL_P =        4.8;
-float PID_ROLL_I =        0.;
-float PID_ROLL_D =        5.;
+float PID_ROLL_P =        2.4;
+float PID_ROLL_I =        0.003;
+float PID_ROLL_D =        66;
 
 float PID_PITCH_P =       PID_ROLL_P;
 float PID_PITCH_I =       PID_ROLL_I;
@@ -59,26 +59,26 @@ float PID_YAW_D_ERROR   = 0.;
 
 // PID ERRORS
 
-float PID_ROLL_ERROR_CURR =   0;
-float PID_PITCH_ERROR_CURR =  0;
-float PID_YAW_ERROR_CURR =    0;
+float PID_ROLL_ERROR_CURR =   0.;
+float PID_PITCH_ERROR_CURR =  0.;
+float PID_YAW_ERROR_CURR =    0.;
 
-float PID_ROLL_ERROR_PREV =   0;
-float PID_PITCH_ERROR_PREV =  0;
-float PID_YAW_ERROR_PREV =    0;
+float PID_ROLL_ERROR_PREV =   0.;
+float PID_PITCH_ERROR_PREV =  0.;
+float PID_YAW_ERROR_PREV =    0.;
 
 
 // PID OUTPUTS
 
-float PID_ROLL_OUTPUT =       0;
-float PID_PITCH_OUTPUT =      0;
-float PID_YAW_OUTPUT =        0;
+float PID_ROLL_OUTPUT =       0.;
+float PID_PITCH_OUTPUT =      0.;
+float PID_YAW_OUTPUT =        0.;
 
 // Motor OUTPUTS
 
-float ROLL_OUTPUT =         0;
-float PITCH_OUTPUT =        0;
-float YAW_OUTPUT =          0;
+float ROLL_OUTPUT =         0.;
+float PITCH_OUTPUT =        0.;
+float YAW_OUTPUT =          0.;
 
 // MAX PID OUTPUT ( @NOT SURE )
 
@@ -325,7 +325,7 @@ void calculatePID(){
   
   PID_PITCH_I_ERROR += PID_PITCH_ERROR_CURR * PID_PITCH_I;                                              // Integral Error and its limit
 
-  PID_PITCH_D_ERROR = (PID_PITCH_ERROR_CURR - PID_PITCH_ERROR_PREV) * PID_PITCH_D;        // Derivative Error  
+  PID_PITCH_D_ERROR = (PID_PITCH_ERROR_CURR - PID_PITCH_ERROR_PREV) * PID_PITCH_D;                      // Derivative Error  
 
   PID_PITCH_OUTPUT = PID_PITCH_P_ERROR + PID_PITCH_I_ERROR + PID_PITCH_D_ERROR;                         // Total Pitch Error   
 
@@ -339,13 +339,11 @@ void calculatePID(){
   
   PID_YAW_I_ERROR += PID_YAW_ERROR_CURR * PID_YAW_I;                                             // Integral Error and its limit
 
-  PID_YAW_D_ERROR = (PID_YAW_ERROR_CURR - PID_YAW_ERROR_PREV) * PID_YAW_D;         // Derivative Error  
+  PID_YAW_D_ERROR = (PID_YAW_ERROR_CURR - PID_YAW_ERROR_PREV) * PID_YAW_D;                       // Derivative Error  
 
   PID_YAW_OUTPUT = PID_YAW_P_ERROR + PID_YAW_I_ERROR + PID_YAW_D_ERROR;                          // Total Roll Error
 
   PID_YAW_ERROR_PREV = PID_YAW_ERROR_CURR;                                                       // Assign Current Error to Previous Error 
-
-//  Serial.println(PID_ROLL_D_ERROR);
 
 }
 
@@ -368,7 +366,7 @@ ISR(PCINT2_vect){
     if(reciever_channel_1 < MIN_MOTOR_OUTPUT) reciever_channel_1 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_1 > MAX_MOTOR_OUTPUT) reciever_channel_1 = MAX_MOTOR_OUTPUT;
 
-    reciever_channel_1 = map(reciever_channel_1, 1000, 2000, -30, 30);
+    reciever_channel_1 = map(reciever_channel_1, 1000, 2000, -15, 15);
     
   }
 
@@ -385,7 +383,7 @@ ISR(PCINT2_vect){
     if(reciever_channel_2 < MIN_MOTOR_OUTPUT) reciever_channel_2 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_2 > MAX_MOTOR_OUTPUT) reciever_channel_2 = MAX_MOTOR_OUTPUT;
 
-    reciever_channel_2 = map(reciever_channel_2, 1000, 2000, -30, 30);
+    reciever_channel_2 = map(reciever_channel_2, 1000, 2000, -15, 15);
     
   }
 
