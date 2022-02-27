@@ -39,8 +39,8 @@ float PID_PITCH_P =       PID_ROLL_P;
 float PID_PITCH_I =       PID_ROLL_I;
 float PID_PITCH_D =       PID_ROLL_D;
 
-float PID_YAW_P =         0.;
-float PID_YAW_I =         0.;
+float PID_YAW_P =         4.0;
+float PID_YAW_I =         0.001;
 float PID_YAW_D =         0.;
 
 // PID ERRORS
@@ -73,6 +73,10 @@ float PID_YAW_ERROR_PREV =    0.;
 float PID_ROLL_OUTPUT =       0.;
 float PID_PITCH_OUTPUT =      0.;
 float PID_YAW_OUTPUT =        0.;
+
+// Gyro Data for Yaw
+
+float GYRO_OFFSET =         0.06;
 
 // Motor OUTPUTS
 
@@ -213,9 +217,13 @@ void loop() {
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
-    ypr[0] = ypr[0] * 180/M_PI;
+//  ypr[0] = -ypr[0] * 180/M_PI;
     ypr[1] = -ypr[1] * 180/M_PI;
     ypr[2] = -ypr[2] * 180/M_PI;
+
+    // Find A way to get gyro data through DMP in float mpu.dmpGetGyro(gyroXYZ, fifoBuffer);
+    // Getting Yaw in deg/sec  (clockwise +ve)
+    ypr[0] = - ((mpu.getRotationZ()/ 16.4) + GYRO_OFFSET) ;
 
   }
 
@@ -230,15 +238,11 @@ void loop() {
     //0.09853 = 0.08 * 1.2317.
     battery_voltage = battery_voltage * 0.92 + (analogRead(0) + 65) * 0.09853;
 
-    //Turn on the led if battery voltage is to low.
-    if(battery_voltage < 1000 && battery_voltage > 600)digitalWrite(13, HIGH);
-
-
     // Throttle -> channel_3 will always be added  
-    timer_BR = reciever_channel_3 - PID_ROLL_OUTPUT + PID_PITCH_OUTPUT ;  // CW
-    timer_BL = reciever_channel_3 - PID_ROLL_OUTPUT - PID_PITCH_OUTPUT ;  // CCW
-    timer_FR = reciever_channel_3 + PID_ROLL_OUTPUT + PID_PITCH_OUTPUT ;  // CCW
-    timer_FL = reciever_channel_3 + PID_ROLL_OUTPUT - PID_PITCH_OUTPUT ;  // CW
+    timer_BR = reciever_channel_3 - PID_ROLL_OUTPUT + PID_PITCH_OUTPUT + PID_YAW_OUTPUT;  // CW
+    timer_BL = reciever_channel_3 - PID_ROLL_OUTPUT - PID_PITCH_OUTPUT - PID_YAW_OUTPUT;  // CCW
+    timer_FR = reciever_channel_3 + PID_ROLL_OUTPUT + PID_PITCH_OUTPUT - PID_YAW_OUTPUT;  // CCW
+    timer_FL = reciever_channel_3 + PID_ROLL_OUTPUT - PID_PITCH_OUTPUT + PID_YAW_OUTPUT;  // CW
 
     battery_compensation = ((1240. - battery_voltage)/(float)3500);
 
@@ -272,9 +276,7 @@ void loop() {
 //    Serial.print("\t");
 //    Serial.println(timer_FL);
 
-    // 3. GIVE THE OUTPUT TO MOTORS
-
-    //  Wait for 4000Us to expire
+    // 3. GIVE THE OUTPUT TO MOTORS  (Wait for 4000Us to expire)
   
     while(zero_timer + REFRESH_RATE > micros());
     zero_timer = micros();
@@ -345,6 +347,8 @@ void calculatePID(){
 
   PID_YAW_ERROR_PREV = PID_YAW_ERROR_CURR;                                                       // Assign Current Error to Previous Error 
 
+//  Serial.println(PID_YAW_ERROR_CURR);
+
 }
 
 // ISR for Reading the Data from the Reciever on the Pins :- A0(PC0), A1(PC1), A2(PC2), A3(PC3) 
@@ -365,9 +369,7 @@ ISR(PCINT2_vect){
     reciever_channel_1 = ISR_CURR_TIME - timer1;
     if(reciever_channel_1 < MIN_MOTOR_OUTPUT) reciever_channel_1 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_1 > MAX_MOTOR_OUTPUT) reciever_channel_1 = MAX_MOTOR_OUTPUT;
-
     reciever_channel_1 = map(reciever_channel_1, 1000, 2000, -15, 15);
-    
   }
 
   // ISR condition for channel 2 at PIN 6
@@ -382,7 +384,6 @@ ISR(PCINT2_vect){
     reciever_channel_2 = ISR_CURR_TIME - timer2;
     if(reciever_channel_2 < MIN_MOTOR_OUTPUT) reciever_channel_2 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_2 > MAX_MOTOR_OUTPUT) reciever_channel_2 = MAX_MOTOR_OUTPUT;
-
     reciever_channel_2 = map(reciever_channel_2, 1000, 2000, -15, 15);
     
   }
@@ -414,8 +415,7 @@ ISR(PCINT2_vect){
     reciever_channel_4 = ISR_CURR_TIME - timer4;
     if(reciever_channel_4 < MIN_MOTOR_OUTPUT) reciever_channel_4 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_4 > MAX_MOTOR_OUTPUT) reciever_channel_4 = MAX_MOTOR_OUTPUT;
-
-    reciever_channel_4 = map(reciever_channel_4, 1000, 2000, -30, 30);
+    reciever_channel_4 = ( reciever_channel_4 - 1500 ) / 3;
 
   }
   
