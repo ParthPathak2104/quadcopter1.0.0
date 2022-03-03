@@ -11,7 +11,6 @@
 // ================================================================
 // ===               MPU BASIC SETTINGS                         ===
 // ================================================================
-
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
 uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
@@ -31,7 +30,7 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 // PID weights
 
-float PID_ROLL_P =        2.4;
+float PID_ROLL_P =        2.39;
 float PID_ROLL_I =        0.003;
 float PID_ROLL_D =        66;
 
@@ -39,8 +38,8 @@ float PID_PITCH_P =       PID_ROLL_P;
 float PID_PITCH_I =       PID_ROLL_I;
 float PID_PITCH_D =       PID_ROLL_D;
 
-float PID_YAW_P =         4.0;
-float PID_YAW_I =         0.001;
+float PID_YAW_P =         1.1; //4.
+float PID_YAW_I =         0.001; //0.001
 float PID_YAW_D =         0.;
 
 // PID ERRORS
@@ -84,7 +83,7 @@ float ROLL_OUTPUT =         0.;
 float PITCH_OUTPUT =        0.;
 float YAW_OUTPUT =          0.;
 
-// MAX PID OUTPUT ( @NOT SURE )
+// MAX PID OUTPUT ( @NOT SURE );
 
 float PID_MAX_OUTPUT =     500;
 float PID_MIN_OUTPUT =     500;
@@ -217,7 +216,6 @@ void loop() {
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
-//  ypr[0] = -ypr[0] * 180/M_PI;
     ypr[1] = -ypr[1] * 180/M_PI;
     ypr[2] = -ypr[2] * 180/M_PI;
 
@@ -346,8 +344,6 @@ void calculatePID(){
   PID_YAW_OUTPUT = PID_YAW_P_ERROR + PID_YAW_I_ERROR + PID_YAW_D_ERROR;                          // Total Roll Error
 
   PID_YAW_ERROR_PREV = PID_YAW_ERROR_CURR;                                                       // Assign Current Error to Previous Error 
-
-//  Serial.println(PID_YAW_ERROR_CURR);
 
 }
 
