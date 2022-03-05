@@ -38,8 +38,8 @@ float PID_PITCH_P =       PID_ROLL_P;
 float PID_PITCH_I =       PID_ROLL_I;
 float PID_PITCH_D =       PID_ROLL_D;
 
-float PID_YAW_P =         1.1; //4.
-float PID_YAW_I =         0.001; //0.001
+float PID_YAW_P =         0.8;
+float PID_YAW_I =         0.0013; 
 float PID_YAW_D =         0.;
 
 // PID ERRORS
@@ -336,7 +336,7 @@ void calculatePID(){
   PID_YAW_ERROR_CURR = ypr[0] - reciever_channel_4;
 
   PID_YAW_P_ERROR = PID_YAW_ERROR_CURR * PID_YAW_P;                                              // Propotional Error
-  
+
   PID_YAW_I_ERROR += PID_YAW_ERROR_CURR * PID_YAW_I;                                             // Integral Error and its limit
 
   PID_YAW_D_ERROR = (PID_YAW_ERROR_CURR - PID_YAW_ERROR_PREV) * PID_YAW_D;                       // Derivative Error  
@@ -412,7 +412,6 @@ ISR(PCINT2_vect){
     if(reciever_channel_4 < MIN_MOTOR_OUTPUT) reciever_channel_4 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_4 > MAX_MOTOR_OUTPUT) reciever_channel_4 = MAX_MOTOR_OUTPUT;
     reciever_channel_4 = ( reciever_channel_4 - 1500 ) / 3;
-
   }
   
 }
