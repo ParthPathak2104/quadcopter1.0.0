@@ -30,16 +30,16 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 // PID weights
 
-float PID_ROLL_P =        2.39;
-float PID_ROLL_I =        0.003;
-float PID_ROLL_D =        66;
+float PID_ROLL_P =        2.15; //2.30
+float PID_ROLL_I =        0.0021; //0.0022
+float PID_ROLL_D =        66.;
 
 float PID_PITCH_P =       PID_ROLL_P;
 float PID_PITCH_I =       PID_ROLL_I;
 float PID_PITCH_D =       PID_ROLL_D;
 
 float PID_YAW_P =         0.8;
-float PID_YAW_I =         0.0013; 
+float PID_YAW_I =         0.0014; // 0.0012
 float PID_YAW_D =         0.;
 
 // PID ERRORS
@@ -85,8 +85,8 @@ float YAW_OUTPUT =          0.;
 
 // MAX PID OUTPUT ( @NOT SURE );
 
-float PID_MAX_OUTPUT =     500;
-float PID_MIN_OUTPUT =     500;
+float PID_MAX_OUTPUT =     400;
+float PID_MIN_OUTPUT =     -400;
 
 float PID_MIN_INTEGRAL  =  -200;
 float PID_MAX_INTEGRAL  =   200;
@@ -115,6 +115,7 @@ unsigned long timer1, timer2, timer3, timer4;
 
 byte flag_channel_1, flag_channel_2, flag_channel_3, flag_channel_4;
 int reciever_channel_1, reciever_channel_2, reciever_channel_3, reciever_channel_4;
+int INPUT_MAX = 30, INPUT_MIN = -30;
 
 //Variable For Throttle
 int throttle = 1000;
@@ -310,10 +311,14 @@ void calculatePID(){
   PID_ROLL_P_ERROR = PID_ROLL_ERROR_CURR * PID_ROLL_P;                                              // Propotional Error
   
   PID_ROLL_I_ERROR += PID_ROLL_ERROR_CURR * PID_ROLL_I;                                             // Integral Error and its limit
+  constrain(PID_ROLL_I_ERROR, PID_MIN_INTEGRAL, PID_MAX_INTEGRAL);
 
-  PID_ROLL_D_ERROR = (PID_ROLL_ERROR_CURR - PID_ROLL_ERROR_PREV) * PID_ROLL_D;     // Derivative Error  
+  PID_ROLL_D_ERROR = (PID_ROLL_ERROR_CURR - PID_ROLL_ERROR_PREV) * PID_ROLL_D;                      // Derivative Error  
 
-  PID_ROLL_OUTPUT = PID_ROLL_P_ERROR + PID_ROLL_I_ERROR + PID_ROLL_D_ERROR;                         // Total Roll Error    
+  PID_ROLL_OUTPUT = PID_ROLL_P_ERROR + PID_ROLL_I_ERROR + PID_ROLL_D_ERROR;                         // Total Roll Error 
+
+  if(PID_ROLL_OUTPUT > PID_MAX_OUTPUT) PID_ROLL_OUTPUT = PID_MAX_OUTPUT;
+  else if(PID_ROLL_OUTPUT < PID_MIN_OUTPUT) PID_ROLL_OUTPUT = PID_MIN_OUTPUT;
 
   PID_ROLL_ERROR_PREV = PID_ROLL_ERROR_CURR;                                                        // Assign Current Error to Previous Error 
 
@@ -324,10 +329,14 @@ void calculatePID(){
   PID_PITCH_P_ERROR = PID_PITCH_ERROR_CURR * PID_PITCH_P;                                               // Propotional Error
   
   PID_PITCH_I_ERROR += PID_PITCH_ERROR_CURR * PID_PITCH_I;                                              // Integral Error and its limit
+  constrain(PID_PITCH_I_ERROR, PID_MIN_INTEGRAL, PID_MAX_INTEGRAL);
 
   PID_PITCH_D_ERROR = (PID_PITCH_ERROR_CURR - PID_PITCH_ERROR_PREV) * PID_PITCH_D;                      // Derivative Error  
 
-  PID_PITCH_OUTPUT = PID_PITCH_P_ERROR + PID_PITCH_I_ERROR + PID_PITCH_D_ERROR;                         // Total Pitch Error   
+  PID_PITCH_OUTPUT = PID_PITCH_P_ERROR + PID_PITCH_I_ERROR + PID_PITCH_D_ERROR;                         // Total Pitch Error  
+  
+  if(PID_PITCH_OUTPUT > PID_MAX_OUTPUT) PID_PITCH_OUTPUT = PID_MAX_OUTPUT;
+  else if(PID_PITCH_OUTPUT < PID_MIN_OUTPUT) PID_PITCH_OUTPUT = PID_MIN_OUTPUT; 
 
   PID_PITCH_ERROR_PREV = PID_PITCH_ERROR_CURR;                                                          // Assign Current Error to Previous Error 
   
@@ -338,10 +347,14 @@ void calculatePID(){
   PID_YAW_P_ERROR = PID_YAW_ERROR_CURR * PID_YAW_P;                                              // Propotional Error
 
   PID_YAW_I_ERROR += PID_YAW_ERROR_CURR * PID_YAW_I;                                             // Integral Error and its limit
+  constrain(PID_YAW_I_ERROR, PID_MIN_INTEGRAL-100, PID_MAX_INTEGRAL-100);
 
   PID_YAW_D_ERROR = (PID_YAW_ERROR_CURR - PID_YAW_ERROR_PREV) * PID_YAW_D;                       // Derivative Error  
 
   PID_YAW_OUTPUT = PID_YAW_P_ERROR + PID_YAW_I_ERROR + PID_YAW_D_ERROR;                          // Total Roll Error
+
+  if(PID_YAW_OUTPUT > PID_MAX_OUTPUT) PID_YAW_OUTPUT = PID_MAX_OUTPUT;
+  else if(PID_YAW_OUTPUT < PID_MIN_OUTPUT) PID_YAW_OUTPUT = PID_MIN_OUTPUT;
 
   PID_YAW_ERROR_PREV = PID_YAW_ERROR_CURR;                                                       // Assign Current Error to Previous Error 
 
@@ -365,7 +378,7 @@ ISR(PCINT2_vect){
     reciever_channel_1 = ISR_CURR_TIME - timer1;
     if(reciever_channel_1 < MIN_MOTOR_OUTPUT) reciever_channel_1 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_1 > MAX_MOTOR_OUTPUT) reciever_channel_1 = MAX_MOTOR_OUTPUT;
-    reciever_channel_1 = map(reciever_channel_1, 1000, 2000, -15, 15);
+    reciever_channel_1 = map(reciever_channel_1, 1000, 2000, INPUT_MIN, INPUT_MAX);
   }
 
   // ISR condition for channel 2 at PIN 6
@@ -380,8 +393,7 @@ ISR(PCINT2_vect){
     reciever_channel_2 = ISR_CURR_TIME - timer2;
     if(reciever_channel_2 < MIN_MOTOR_OUTPUT) reciever_channel_2 = MIN_MOTOR_OUTPUT;
     if(reciever_channel_2 > MAX_MOTOR_OUTPUT) reciever_channel_2 = MAX_MOTOR_OUTPUT;
-    reciever_channel_2 = map(reciever_channel_2, 1000, 2000, -15, 15);
-    
+    reciever_channel_2 = map(reciever_channel_2, 1000, 2000, INPUT_MIN, INPUT_MAX);
   }
 
   //  ISR condition for channel 3 at PIN 5
