@@ -5,3 +5,5 @@ This file contains the code for the arduino based flight controller for the quad
 https://www.youtube.com/watch?v=KaE3acCrN2o
 
 This is the link to the video of a test flight on my channel.
+
+**code cannot be copied**
